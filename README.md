@@ -26,4 +26,4 @@ On Windows, if `python` is not found, use `py`.
 - Uses only what comes with Python 3. Tested on Python 3.10 (Linux) and, by GitHub Actions, Python 3.12 on Windows and Ubuntu. Not tested on a Windows 10 or 11 desktop, a network drive, or a folder with millions of files. On a machine that cannot make symbolic links, one test reports "skipped".
 - The practice files are made up. Educational example, no warranty. Use at your own risk. What you delete afterwards is your decision.
 - Code is MIT licensed (see LICENSE). Python is a separate project with its own license; this repository does not include it.
-- The commands, with real recorded output, are in the companion practice page (published after review). Nothing in it runs on your device.
+- The commands, with real recorded output, are in the companion practice page: https://faiz12321.github.io/ai-tools-that-work/build-session-07-disk-report.html . Nothing in it runs on your device.
