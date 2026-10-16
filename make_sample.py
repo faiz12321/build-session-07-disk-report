@@ -5,6 +5,7 @@ Refuses any existing sample path; never resets or replaces it.
 The files hold only zeros. They are a few megabytes in total.
 """
 import sys
+import stat
 from pathlib import Path
 
 KB = 1024
@@ -22,7 +23,13 @@ FILES = {
 
 
 def make(root):
-    root = Path(root)
+    root = Path(root).absolute()
+    if ".." in root.parts:
+        raise OSError("Parent-traversal paths are unsupported.")
+    for parent in reversed(root.parents):
+        info = parent.lstat()
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise OSError("Linked/reparse-point parents are unsupported.")
     root.mkdir()  # Refuse any existing file, folder or link.
     for name, size in FILES.items():
         path = root / name
@@ -33,7 +40,7 @@ def make(root):
 
 
 if __name__ == "__main__":
-    here = Path(__file__).resolve().parent
+    here = Path(__file__).absolute().parent
     try:
         count = make(here / "sample")
     except FileExistsError:
