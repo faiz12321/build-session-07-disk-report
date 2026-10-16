@@ -38,6 +38,43 @@ class DiskReportTests(unittest.TestCase):
             code = diskreport.main([str(a) for a in args])
         return code, out.getvalue()
 
+    def snapshot(self):
+        return sorted((p.relative_to(self.root).as_posix(), p.is_dir(),
+                       p.stat().st_mtime_ns,
+                       p.read_bytes() if p.is_file() else None)
+                      for p in self.root.rglob("*"))
+
+    def test_never_changes_the_files(self):
+        before = self.snapshot()
+        diskreport.scan(self.root)
+        self.assertEqual(before, self.snapshot())
+
+    def test_setup_refuses_existing_folder_and_keeps_nested_user_data(self):
+        nested = self.root / "unrelated" / "deep.txt"
+        nested.parent.mkdir(); nested.write_bytes(b"KEEP")
+        before = self.snapshot()
+        with self.assertRaises(FileExistsError):
+            make_sample.make(self.root)
+        self.assertEqual(before, self.snapshot())
+
+    def test_setup_refuses_file_path(self):
+        path = Path(self.tmp.name) / "file"
+        path.write_bytes(b"KEEP")
+        before = (path.read_bytes(), path.stat().st_mtime_ns)
+        with self.assertRaises(FileExistsError):
+            make_sample.make(path)
+        self.assertEqual(before, (path.read_bytes(), path.stat().st_mtime_ns))
+
+    def test_setup_cli_repeat_refuses(self):
+        import shutil, subprocess, sys
+        script = Path(self.tmp.name) / "make_sample.py"
+        shutil.copyfile(Path(make_sample.__file__), script)
+        before = self.snapshot()
+        result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Nothing was replaced or deleted", result.stderr)
+        self.assertEqual(before, self.snapshot())
+
     def test_human_sizes(self):
         self.assertEqual(diskreport.human(0), "0 bytes")
         self.assertEqual(diskreport.human(1023), "1023 bytes")
