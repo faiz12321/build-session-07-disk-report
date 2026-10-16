@@ -6,6 +6,26 @@ Sizes are file sizes (1 KB = 1024 bytes), not the space the disk sets aside.
 import os
 import stat
 import sys
+from pathlib import Path
+
+def safe_input(value, directory=False):
+    path = Path(value).absolute()
+    if '..' in path.parts:
+        raise OSError('Parent-traversal paths are unsupported.')
+    for part in [*reversed(path.parents), path]:
+        info = part.lstat()
+        if stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400:
+            raise OSError('Links/reparse points are unsupported.')
+    info = path.lstat()
+    if directory:
+        if not stat.S_ISDIR(info.st_mode):
+            raise NotADirectoryError('Expected an ordinary directory.')
+    elif not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        raise OSError('Expected an ordinary singly linked file.')
+    return path
+
+
+
 
 REPARSE_POINT = 0x400  # Windows marks shortcuts to other folders (junctions) with this flag
 
@@ -25,13 +45,13 @@ def is_link(info):
 
 def scan(folder):
     """Walk the folder. Returns a dict with sizes, counts and everything that could not be read."""
-    if not os.path.isdir(folder):
-        raise NotADirectoryError(f"Not a folder: {folder}")
     result = {"total": 0, "files": [], "groups": {}, "folders": 0, "unreadable": [], "links": 0}
+    folder = safe_input(folder, directory=True)
     pending = [(folder, None)]
     while pending:
         path, group = pending.pop()
         try:
+            path = safe_input(path, directory=True)
             entries = list(os.scandir(path))
         except OSError as error:
             result["unreadable"].append(f"{path}: {error.strerror or error}")
@@ -44,6 +64,11 @@ def scan(folder):
                 continue
             if is_link(info):
                 result["links"] += 1
+                continue
+            try:
+                safe_input(entry.path, directory=stat.S_ISDIR(info.st_mode))
+            except OSError as error:
+                result["unreadable"].append(f"{entry.path}: {error.strerror or error}")
                 continue
             here = group if group is not None else (entry.name if stat.S_ISDIR(info.st_mode) else None)
             if stat.S_ISDIR(info.st_mode):
@@ -58,8 +83,8 @@ def scan(folder):
     return result
 
 
-def report(folder, top=5):
-    data = scan(folder)
+def report(folder, top=5, data=None):
+    data = scan(folder) if data is None else data
     lines = [f"Folder: {folder}", f"Total: {human(data['total'])} in {len(data['files'])} files and {data['folders']} folders", "", "Biggest folders:"]
     groups = sorted(data["groups"].items(), key=lambda item: (-item[1], item[0]))
     lines += [f"  {human(size):>10}  {name}" for name, size in groups[:top]] or ["  (none)"]
@@ -71,6 +96,8 @@ def report(folder, top=5):
     lines += [f"  {line}" for line in data["unreadable"][:top]]
     if data["links"]:
         lines.append(f"Shortcuts and links skipped, not followed: {data['links']}")
+    if data["unreadable"] or data["links"]:
+        lines.insert(0, "Incomplete report: unreadable or unsupported paths were skipped.")
     return "\n".join(lines)
 
 
@@ -95,11 +122,12 @@ def main(argv):
         print("Usage: python diskreport.py FOLDER [--top N]")
         return 2
     try:
-        print(report(args[0], top))
-    except NotADirectoryError as error:
+        data = scan(args[0])
+        print(report(args[0], top, data))
+    except OSError as error:
         print(error)
         return 2
-    return 0
+    return 2 if data["unreadable"] or data["links"] else 0
 
 
 if __name__ == "__main__":
