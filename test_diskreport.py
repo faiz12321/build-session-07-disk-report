@@ -138,7 +138,8 @@ class DiskReportTests(unittest.TestCase):
 
         with mock.patch.object(os, "scandir", picky):
             code, text = self.run_main(self.root)
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 2)
+        self.assertIn("Incomplete report", text)
         self.assertIn("Could not read: 1 item(s)", text)
         self.assertIn("Permission denied", text)
         self.assertIn("downloads", text)
@@ -187,6 +188,66 @@ class DiskReportTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn(b"?", raw.getvalue())
 
+
+class PathSafety(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.base = Path(self.tmp.name)
+        self.root = self.base/'sample'
+        make_sample.make(self.root)
+    def link(self, path, target, directory=False):
+        try: path.symlink_to(target, target_is_directory=directory)
+        except OSError: self.skipTest('Symlink creation unavailable')
+    def code(self, path=None):
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            code = diskreport.main([str(path or self.root)])
+        return code, out.getvalue()
+    def test_root_link_refuses(self):
+        p=self.base/'linked';self.link(p,self.root,True)
+        with self.assertRaises(OSError):diskreport.scan(p)
+        self.assertEqual(self.code(p)[0],2)
+    def test_linked_ancestor_refuses(self):
+        p=self.base/'linked';self.link(p,self.root,True)
+        with self.assertRaises(OSError):diskreport.scan(p/'videos')
+    def test_self_loop_is_counted_skipped_and_incomplete(self):
+        self.link(self.root/'loop',self.root,True)
+        data=diskreport.scan(self.root)
+        self.assertEqual(data['links'],1)
+        code,text=self.code();self.assertEqual(code,2);self.assertIn('Incomplete report',text)
+    def test_file_link_is_not_counted_as_file(self):
+        self.link(self.root/'linked',self.root/'readme.txt')
+        data=diskreport.scan(self.root);self.assertEqual(data['links'],1)
+        self.assertEqual(data['total'],sum(make_sample.FILES.values()))
+        self.assertEqual(self.code()[0],2)
+    def test_dangling_link_nonzero(self):
+        self.link(self.root/'linked',self.root/'missing')
+        self.assertEqual(self.code()[0],2)
+    def test_hardlink_incomplete_nonzero(self):
+        os.link(self.root/'readme.txt',self.root/'hard')
+        data=diskreport.scan(self.root);self.assertEqual(len(data['unreadable']),2)
+        self.assertEqual(self.code()[0],2)
+    def test_pipe_incomplete_nonzero(self):
+        if not hasattr(os,'mkfifo'):self.skipTest('Unix pipe unavailable')
+        os.mkfifo(self.root/'pipe');self.assertEqual(self.code()[0],2)
+    def test_traversal_refuses(self):
+        with self.assertRaises(OSError):diskreport.scan(self.root/'..'/'sample')
+    def test_root_enumeration_error_nonzero(self):
+        with mock.patch('os.scandir',side_effect=OSError('forced error')):
+            code,text=self.code();self.assertEqual(code,2);self.assertIn('Incomplete report',text)
+    def test_metadata_preflight_failure_nonzero(self):
+        real=diskreport.safe_input
+        def fail(path,*args,**kwargs):
+            if str(path).endswith('readme.txt'):raise OSError('forced metadata error')
+            return real(path,*args,**kwargs)
+        with mock.patch.object(diskreport,'safe_input',side_effect=fail):
+            code,text=self.code();self.assertEqual(code,2);self.assertIn('forced metadata error',text)
+    def test_setup_linked_parent_refuses(self):
+        p=self.base/'linked';self.link(p,self.root,True)
+        with self.assertRaises(OSError):make_sample.make(p/'new')
+        self.assertFalse((self.root/'new').exists())
+    def test_setup_traversal_refuses(self):
+        with self.assertRaises(OSError):make_sample.make(self.root/'..'/'new')
 
 if __name__ == "__main__":
     unittest.main()
