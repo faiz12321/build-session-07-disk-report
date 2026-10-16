@@ -1,43 +1,28 @@
 # Report logical file sizes
 
-Read-only teaching tool that ranks top-level folder totals and largest files.
-It reads metadata, not content. Logical sizes are not allocated disk usage,
-free space or permission to delete. Reports reveal file names.
+Two Windows and two Ubuntu replays use the exact visible source versions. Final suite has 28 small fixture tests (Unix pipe skips on Windows); symlink creation can skip where unavailable. First Windows command output is displayed verbatim; unittest timing and the temporary path in the missing-folder error vary. The initial top-level-only prototype remains a teaching failure, not the final checker.
+NEW sample setup exclusively creates nine tiny zero-filled files. Extensions are labels, not valid media/documents/programs. Existing paths, traversal and linked/reparse-point parents refuse; no reset or deletion. Recorder removes only its own temporary fixture folder.
+Final checker refuses root and ancestor links/reparse points/traversal. Existing tree-link behavior is kept: links are counted and skipped, not followed. Such skipped links now visibly mark the report incomplete and return exit 2, as do unreadable paths and hardlinked/special entries. Enumeration/metadata errors cannot silently become a clean report. Original ordinary-file totals, ranking and report format are retained on complete input.
+Sizes sum logical file bytes, not allocated blocks or freeable space. No deletion recommendation. Directory listings use memory and large trees take time; no new general resource cap is claimed. Stop editors/sync. Preflight checks are best-effort, not hostile-race or atomic-snapshot protection. Read-only refers to this script's absence of write/move/delete/network code, not the OS or other software. Paths may be private.
+Tests use small temporary fixtures. No real whole-drive, desktop Windows or macOS recording. Decisions and feedback are teaching text, not recorded output.
 
-## Practise
+MIT code. Python is separately licensed and not included.
 
-Save the three Python files in a new empty lesson folder. Python 3 is enough:
+
+## Practice
+
+Save the three source files in a NEW empty local lesson folder.
 
     python make_sample.py
     python diskreport.py sample
     python diskreport.py sample --top 2
     python -m unittest -v
 
-Setup exclusively creates sample and nine zero-filled files. It refuses any
-existing sample path, without resetting or replacing data. The extensions are
-practice labels: these are not valid videos, pictures, documents or programs.
-Use a different new folder if setup refuses; do not delete old data to force it.
+The checker reports retained logical totals on complete input. The NEW output folder refuses repeats; it is not a reset.
 
-## Evidence and limits
+## Paired recordings
 
-16 temporary-fixture tests cover known totals, ranking, errors, simulated
-permission denial, selected link behavior, no-write checks, setup file/folder
-collisions, nested unrelated bytes/mtime and repeat-run refusal. All16 tests
-pass without skips in two Windows and two Ubuntu recordings. Paired platform
-outputs match except unittest time. Displays use first Windows output, not
-mixed transcripts. No Windows desktop, macOS or whole-drive run was recorded.
+- Windows: https://github.com/faiz12321/lesson-lab/actions/runs/38968325824
+- Ubuntu: https://github.com/faiz12321/lesson-lab/actions/runs/38968451977
 
-The recorder saves visible versions in a unique temporary folder, first the
-incorrect top-level-only report, then the unchanged final checker. It removes
-only its temporary recording folder. expected_output.txt is CI's stable sample
-report, not a complete session transcript.
-
-Selected link/reparse-point checks do not prove behavior on all filesystems.
-Permission errors, concurrent changes, skipped paths and network filesystems
-can affect totals. Read the skipped-path report; do not automate deletion.
-Keep private names and reports private. Fixture passes are limited evidence,
-not a universal safety guarantee.
-
-## License
-
-MIT, see LICENSE. Python is separately licensed and not included.
+Python filesystem reference: https://docs.python.org/3/library/os.html
