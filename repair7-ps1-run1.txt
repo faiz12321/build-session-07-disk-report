@@ -1,0 +1,83 @@
+### CMD: python --version
+Python 3.12.10
+### EXIT: 0
+
+### CMD: python make_sample.py
+Made 9 files in sample
+### EXIT: 0
+
+### CMD: python make_sample.py
+Stopped: sample already exists. Nothing was replaced or deleted.
+### EXIT: 1
+
+### CMD: python diskreport.py sample
+1024 bytes
+### EXIT: 0
+
+### CMD: python diskreport.py sample
+Folder: sample
+Total: 8.6 MB in 9 files and 5 folders
+
+Biggest folders:
+      5.0 MB  videos
+      2.3 MB  downloads
+      1.2 MB  photos
+     92.0 KB  documents
+      1.0 KB  (files directly in this folder)
+
+Biggest files:
+      2.9 MB  videos\holiday.mp4
+      2.3 MB  downloads\setup-installer.exe
+      1.2 MB  videos\old-clips\clip1.mp4
+    900.0 KB  videos\old-clips\clip2.mp4
+    700.0 KB  photos\beach.jpg
+
+Could not read: 0 item(s)
+### EXIT: 0
+
+### CMD: python diskreport.py sample --top 2
+Folder: sample
+Total: 8.6 MB in 9 files and 5 folders
+
+Biggest folders:
+      5.0 MB  videos
+      2.3 MB  downloads
+
+Biggest files:
+      2.9 MB  videos\holiday.mp4
+      2.3 MB  downloads\setup-installer.exe
+
+Could not read: 0 item(s)
+### EXIT: 0
+
+### CMD: python -m unittest -v
+test_a_name_the_console_cannot_show_does_not_crash (test_diskreport.DiskReportTests.test_a_name_the_console_cannot_show_does_not_crash) ... ok
+test_an_empty_folder_and_bad_folders (test_diskreport.DiskReportTests.test_an_empty_folder_and_bad_folders) ... ok
+test_an_unreadable_folder_is_listed_and_the_rest_still_counts (test_diskreport.DiskReportTests.test_an_unreadable_folder_is_listed_and_the_rest_still_counts) ... ok
+test_bad_arguments (test_diskreport.DiskReportTests.test_bad_arguments) ... ok
+test_biggest_files_come_first (test_diskreport.DiskReportTests.test_biggest_files_come_first) ... ok
+test_folders_are_ranked_by_size_and_include_sub_folders (test_diskreport.DiskReportTests.test_folders_are_ranked_by_size_and_include_sub_folders) ... ok
+test_human_sizes (test_diskreport.DiskReportTests.test_human_sizes) ... ok
+test_link_detection (test_diskreport.DiskReportTests.test_link_detection) ... ok
+test_links_to_folders_are_not_followed_even_in_a_loop (test_diskreport.DiskReportTests.test_links_to_folders_are_not_followed_even_in_a_loop) ... ok
+test_never_changes_the_files (test_diskreport.DiskReportTests.test_never_changes_the_files) ... ok
+test_setup_cli_repeat_refuses (test_diskreport.DiskReportTests.test_setup_cli_repeat_refuses) ... ok
+test_setup_refuses_existing_folder_and_keeps_nested_user_data (test_diskreport.DiskReportTests.test_setup_refuses_existing_folder_and_keeps_nested_user_data) ... ok
+test_setup_refuses_file_path (test_diskreport.DiskReportTests.test_setup_refuses_file_path) ... ok
+test_the_report_changes_nothing (test_diskreport.DiskReportTests.test_the_report_changes_nothing) ... ok
+test_the_report_works_when_every_change_is_forbidden (test_diskreport.DiskReportTests.test_the_report_works_when_every_change_is_forbidden) ... ok
+test_total_and_counts_are_exact (test_diskreport.DiskReportTests.test_total_and_counts_are_exact) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.463s
+
+OK
+### EXIT: 0
+
+### CMD: python diskreport.py nothing-here
+Not a folder: nothing-here
+### EXIT: 2
+
+### CMD: python diskreport.py sample --top 0
+--top needs a whole number of 1 or more.
+### EXIT: 2
