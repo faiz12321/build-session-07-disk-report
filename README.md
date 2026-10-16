@@ -1,29 +1,43 @@
-# See what is using your disk space
+# Report logical file sizes
 
-A small read-only disk space report built step by step. It adds up file sizes folder by folder, lists the biggest folders and files, skips shortcuts so it cannot loop, and lists anything it could not read. It never changes, moves or deletes a file.
+Read-only teaching tool that ranks top-level folder totals and largest files.
+It reads metadata, not content. Logical sizes are not allocated disk usage,
+free space or permission to delete. Reports reveal file names.
 
-## Run it
+## Practise
 
-    python make_sample.py                 # makes a practice folder called sample
-    python diskreport.py sample           # the report
-    python diskreport.py sample --top 2   # fewer lines
-    python -m unittest -v                 # twelve automated tests
+Save the three Python files in a new empty lesson folder. Python 3 is enough:
 
-On Windows, if `python` is not found, use `py`.
+    python make_sample.py
+    python diskreport.py sample
+    python diskreport.py sample --top 2
+    python -m unittest -v
 
-## Files
+Setup exclusively creates sample and nine zero-filled files. It refuses any
+existing sample path, without resetting or replacing data. The extensions are
+practice labels: these are not valid videos, pictures, documents or programs.
+Use a different new folder if setup refuses; do not delete old data to force it.
 
-- `diskreport.py` - the tool
-- `make_sample.py` - makes made-up practice files (zeros, about 9 MB)
-- `test_diskreport.py` - tests
-- `expected_output.txt` - the report the lesson shows; the automated check compares against it
+## Evidence and limits
 
-## Notes
+16 temporary-fixture tests cover known totals, ranking, errors, simulated
+permission denial, selected link behavior, no-write checks, setup file/folder
+collisions, nested unrelated bytes/mtime and repeat-run refusal. All16 tests
+pass without skips in two Windows and two Ubuntu recordings. Paired platform
+outputs match except unittest time. Displays use first Windows output, not
+mixed transcripts. No Windows desktop, macOS or whole-drive run was recorded.
 
-- Sizes are file sizes (1 KB = 1024 bytes), not the space the disk sets aside, so Windows may show a slightly different number. Files that cloud folders keep online only can be listed with their full size although they are not stored on the PC.
-- Shortcuts and links are skipped, not followed. A real hard link (one file with two names) would be counted once per name.
-- A folder that cannot be opened is listed under "Could not read". If that list is not empty, the total is too low.
-- Uses only what comes with Python 3. Tested on Python 3.10 (Linux) and, by GitHub Actions, Python 3.12 on Windows and Ubuntu. Not tested on a Windows 10 or 11 desktop, a network drive, or a folder with millions of files. On a machine that cannot make symbolic links, one test reports "skipped".
-- The practice files are made up. Educational example, no warranty. Use at your own risk. What you delete afterwards is your decision.
-- Code is MIT licensed (see LICENSE). Python is a separate project with its own license; this repository does not include it.
-- The commands, with real recorded output, are in the companion practice page: https://faiz12321.github.io/ai-tools-that-work/build-session-07-disk-report.html . Nothing in it runs on your device.
+The recorder saves visible versions in a unique temporary folder, first the
+incorrect top-level-only report, then the unchanged final checker. It removes
+only its temporary recording folder. expected_output.txt is CI's stable sample
+report, not a complete session transcript.
+
+Selected link/reparse-point checks do not prove behavior on all filesystems.
+Permission errors, concurrent changes, skipped paths and network filesystems
+can affect totals. Read the skipped-path report; do not automate deletion.
+Keep private names and reports private. Fixture passes are limited evidence,
+not a universal safety guarantee.
+
+## License
+
+MIT, see LICENSE. Python is separately licensed and not included.
