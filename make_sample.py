@@ -1,6 +1,7 @@
 """Creates a small, fixed folder of made-up files called sample/ next to this script.
 
 Run: python make_sample.py
+Refuses any existing sample path; never resets or replaces it.
 The files hold only zeros. They are a few megabytes in total.
 """
 import sys
@@ -22,15 +23,20 @@ FILES = {
 
 def make(root):
     root = Path(root)
+    root.mkdir()  # Refuse any existing file, folder or link.
     for name, size in FILES.items():
         path = root / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(b"\0" * size)
+        with path.open("xb") as handle:
+            handle.write(b"\0" * size)
     return len(FILES)
 
 
 if __name__ == "__main__":
     here = Path(__file__).resolve().parent
-    count = make(here / "sample")
+    try:
+        count = make(here / "sample")
+    except FileExistsError:
+        raise SystemExit("Stopped: sample already exists. Nothing was replaced or deleted.")
     print(f"Made {count} files in sample")
     sys.exit(0)
